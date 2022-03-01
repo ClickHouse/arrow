@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "arrow/adapters/orc/options.h"
+#include "arrow/adapters/orc/util.h"
 #include "arrow/io/interfaces.h"
 #include "arrow/memory_pool.h"
 #include "arrow/record_batch.h"
@@ -60,6 +61,19 @@ class ARROW_EXPORT ORCFileReader {
   /// \return the returned reader object
   static Result<std::unique_ptr<ORCFileReader>> Open(
       const std::shared_ptr<io::RandomAccessFile>& file, MemoryPool* pool);
+
+  /// \brief Creates a new ORC reader.
+  ///
+  /// \param[in] file the data source
+  /// \param[in] pool a MemoryPool to use for buffer allocations
+  /// \param[out] reader the returned reader object
+  /// \return Status
+  ARROW_DEPRECATED("Deprecated in 6.0.0. Use Result-returning overload instead.")
+  static Status Open(const std::shared_ptr<io::RandomAccessFile>& file, MemoryPool* pool,
+                     std::unique_ptr<ORCFileReader>* reader);
+
+  /// \brief Get ORC reader from inside.
+  liborc::Reader* GetRawORCReader();
 
   /// \brief Return the schema read from the ORC file
   ///

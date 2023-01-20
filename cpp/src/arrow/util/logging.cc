@@ -67,15 +67,12 @@ class CerrLog {
  public:
   explicit CerrLog(ArrowLogLevel severity) : severity_(severity), has_logged_(false) {}
 
-  virtual ~CerrLog() {
+  virtual ~CerrLog() noexcept(false) {
     if (has_logged_) {
-      static std::mutex cerr_mutex;
-      std::lock_guard<std::mutex> lock(cerr_mutex);
-      std::cerr << std::move(buffer_).str() << std::endl;
+      buffer_ << std::endl;
     }
     if (severity_ == ArrowLogLevel::ARROW_FATAL) {
-      PrintBackTrace();
-      std::abort();
+      throw std::runtime_error(std::move(buffer_).str());
     }
   }
 
@@ -255,7 +252,7 @@ std::ostream& ArrowLog::Stream() {
 
 bool ArrowLog::IsEnabled() const { return is_enabled_; }
 
-ArrowLog::~ArrowLog() {
+ArrowLog::~ArrowLog() noexcept(false) {
   if (logging_provider_ != nullptr) {
     delete reinterpret_cast<LoggingProvider*>(logging_provider_);
     logging_provider_ = nullptr;

@@ -33,7 +33,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/zeebo/xxh3 v0.13.0
 	golang.org/x/exp v0.0.0-20211028214138-64b4c8e87d1a
-	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359
+	golang.org/x/sys v0.1.0
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 	gonum.org/v1/gonum v0.9.3
 	google.golang.org/grpc v1.41.0

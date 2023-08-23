@@ -1019,7 +1019,7 @@ int PlainDecoder<DType>::DecodeArrow(
   VisitNullBitmapInline(
       valid_bits, valid_bits_offset, num_values, null_count,
       [&]() {
-        builder->UnsafeAppend(::arrow::util::SafeLoadAs<value_type>(data_));
+        builder->UnsafeAppend(::arrow::bit_util::ToLittleEndian(::arrow::util::SafeLoadAs<value_type>(data_)));
         data_ += sizeof(value_type);
       },
       [&]() { builder->UnsafeAppendNull(); });
@@ -1047,7 +1047,7 @@ int PlainDecoder<DType>::DecodeArrow(
       valid_bits, valid_bits_offset, num_values, null_count,
       [&]() {
         PARQUET_THROW_NOT_OK(
-            builder->Append(::arrow::util::SafeLoadAs<value_type>(data_)));
+            builder->Append(::arrow::bit_util::ToLittleEndian(::arrow::util::SafeLoadAs<value_type>(data_))));
         data_ += sizeof(value_type);
       },
       [&]() { PARQUET_THROW_NOT_OK(builder->AppendNull()); });
@@ -1067,7 +1067,17 @@ inline int DecodePlain(const uint8_t* data, int64_t data_size, int num_values,
   }
   // If bytes_to_decode == 0, data could be null
   if (bytes_to_decode > 0) {
+#if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__)
+    for (size_t i = 0; i < num_values; ++i)
+    {
+      memcpy(out + i, data + sizeof(T) * i, sizeof(T));
+      auto begin = reinterpret_cast<uint8_t*>(out + i);
+      auto end = begin + sizeof(T);
+      std::reverse(begin, end);
+    }
+#else
     memcpy(out, data, bytes_to_decode);
+#endif
   }
   return static_cast<int>(bytes_to_decode);
 }
@@ -1090,7 +1100,7 @@ static inline int64_t ReadByteArray(const uint8_t* data, int64_t data_size,
   if (ARROW_PREDICT_FALSE(data_size < 4)) {
     ParquetException::EofException();
   }
-  const int32_t len = ::arrow::util::SafeLoadAs<int32_t>(data);
+  const int32_t len = ::arrow::bit_util::ToLittleEndian(::arrow::util::SafeLoadAs<int32_t>(data));
   if (len < 0) {
     throw ParquetException("Invalid BYTE_ARRAY value");
   }
@@ -1379,7 +1389,7 @@ class PlainByteArrayDecoder : public PlainDecoder<ByteArrayType>,
           if (ARROW_PREDICT_FALSE(len_ < 4)) {
             ParquetException::EofException();
           }
-          auto value_len = ::arrow::util::SafeLoadAs<int32_t>(data_);
+          auto value_len = ::arrow::bit_util::ToLittleEndian(::arrow::util::SafeLoadAs<int32_t>(data_));
           if (ARROW_PREDICT_FALSE(value_len < 0 || value_len > INT32_MAX - 4)) {
             return Status::Invalid("Invalid or corrupted value_len '", value_len, "'");
           }
@@ -1425,7 +1435,7 @@ class PlainByteArrayDecoder : public PlainDecoder<ByteArrayType>,
           if (ARROW_PREDICT_FALSE(len_ < 4)) {
             ParquetException::EofException();
           }
-          auto value_len = ::arrow::util::SafeLoadAs<int32_t>(data_);
+          auto value_len = ::arrow::bit_util::ToLittleEndian(::arrow::util::SafeLoadAs<int32_t>(data_));
           if (ARROW_PREDICT_FALSE(value_len < 0 || value_len > INT32_MAX - 4)) {
             return Status::Invalid("Invalid or corrupted value_len '", value_len, "'");
           }
@@ -2984,7 +2994,7 @@ int ByteStreamSplitDecoder<DType>::DecodeArrow(
           const size_t byte_index = b * num_values_in_buffer_ + offset;
           gathered_byte_data[b] = data[byte_index];
         }
-        builder->UnsafeAppend(::arrow::util::SafeLoadAs<T>(&gathered_byte_data[0]));
+        builder->UnsafeAppend(::arrow::bit_util::ToLittleEndian(::arrow::util::SafeLoadAs<T>(&gathered_byte_data[0])));
         ++offset;
       },
       [&]() { builder->UnsafeAppendNull(); });

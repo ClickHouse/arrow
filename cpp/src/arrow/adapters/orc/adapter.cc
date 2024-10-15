@@ -553,10 +553,6 @@ class ORCFileReader::Impl {
     return NextStripeReader(batch_size, empty_vec);
   }
 
-  liborc::Reader* ORCFileReader::GetRawORCReader() {
-    return impl_->GetRawORCReader();
-  }
-
  private:
   MemoryPool* pool_;
   std::unique_ptr<liborc::Reader> reader_;

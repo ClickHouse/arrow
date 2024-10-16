@@ -222,6 +222,11 @@ class ORCFileReader::Impl {
     return Init();
   }
 
+  virtual liborc::Reader* GetRawORCReader() {
+    return reader_.get();
+  }
+
+
   Status Init() {
     int64_t nstripes = reader_->getNumberOfStripes();
     stripes_.resize(static_cast<size_t>(nstripes));
@@ -558,6 +563,15 @@ class ORCFileReader::Impl {
 ORCFileReader::ORCFileReader() { impl_.reset(new ORCFileReader::Impl()); }
 
 ORCFileReader::~ORCFileReader() {}
+
+liborc::Reader* ORCFileReader::GetRawORCReader() {
+  return impl_->GetRawORCReader();
+}
+
+Status ORCFileReader::Open(const std::shared_ptr<io::RandomAccessFile>& file,
+                           MemoryPool* pool, std::unique_ptr<ORCFileReader>* reader) {
+  return Open(file, pool).Value(reader);
+}
 
 Result<std::unique_ptr<ORCFileReader>> ORCFileReader::Open(
     const std::shared_ptr<io::RandomAccessFile>& file, MemoryPool* pool) {

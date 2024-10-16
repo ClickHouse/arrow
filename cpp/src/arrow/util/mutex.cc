@@ -19,7 +19,7 @@
 
 #include <mutex>
 
-#ifndef _WIN32
+#if !defined( _WIN32) && !defined(__ppc64__)
 #include <pthread.h>
 #include <atomic>
 #endif
@@ -59,7 +59,7 @@ Mutex::Guard Mutex::Lock() {
 
 Mutex::Mutex() : impl_(new Impl, [](Impl* impl) { delete impl; }) {}
 
-#ifndef _WIN32
+#if !defined( _WIN32) && !defined(__ppc64__)
 namespace {
 
 struct AfterForkState {
@@ -71,19 +71,42 @@ struct AfterForkState {
   // The leak (only in child processes) is a small price to pay for robustness.
   Mutex* mutex = nullptr;
 
+  enum State {
+    INITIALIZED,
+    IN_PROCESS,
+    NOT_INITIALIZED,
+  };
+
+  std::atomic_int state = INITIALIZED;
+
  private:
   AfterForkState() {
     pthread_atfork(/*prepare=*/nullptr, /*parent=*/nullptr, /*child=*/&AfterFork);
   }
 
-  static void AfterFork() { instance.mutex = new Mutex; }
+  static void AfterFork() { instance.state.store(NOT_INITIALIZED); }
+
 };
 
 AfterForkState AfterForkState::instance;
 }  // namespace
 
-Mutex* GlobalForkSafeMutex() { return AfterForkState::instance.mutex; }
-#endif  // _WIN32
+Mutex* GlobalForkSafeMutex() {
+  if (AfterForkState::instance.state.load() == AfterForkState::State::INITIALIZED) {
+    return AfterForkState::instance.mutex;
+  }
+
+  int expected = AfterForkState::State::NOT_INITIALIZED;
+  if (AfterForkState::instance.state.compare_exchange_strong(expected, AfterForkState::State::IN_PROCESS)) {
+    AfterForkState::instance.mutex = new Mutex;
+    AfterForkState::instance.state.store(AfterForkState::State::INITIALIZED);
+  } else {
+    while (AfterForkState::instance.state.load() != AfterForkState::State::INITIALIZED);
+  }
+
+  return AfterForkState::instance.mutex;
+}
+#endif  // _WIN32 and __ppc64__
 
 }  // namespace util
 }  // namespace arrow

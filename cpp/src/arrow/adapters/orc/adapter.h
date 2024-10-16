@@ -30,6 +30,7 @@
 #include "arrow/type_fwd.h"
 #include "arrow/util/macros.h"
 #include "arrow/util/visibility.h"
+#include "arrow/adapters/orc/util.h"
 
 namespace arrow {
 namespace adapters {
@@ -52,6 +53,19 @@ struct StripeInformation {
 class ARROW_EXPORT ORCFileReader {
  public:
   ~ORCFileReader();
+
+  /// \brief Creates a new ORC reader.
+  ///
+  /// \param[in] file the data source
+  /// \param[in] pool a MemoryPool to use for buffer allocations
+  /// \param[out] reader the returned reader object
+  /// \return Status
+  ARROW_DEPRECATED("Deprecated in 6.0.0. Use Result-returning overload instead.")
+  static Status Open(const std::shared_ptr<io::RandomAccessFile>& file, MemoryPool* pool,
+                     std::unique_ptr<ORCFileReader>* reader);
+
+  /// \brief Get ORC reader from inside.
+  liborc::Reader* GetRawORCReader();
 
   /// \brief Creates a new ORC reader
   ///

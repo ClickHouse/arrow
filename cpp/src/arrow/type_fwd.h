@@ -59,7 +59,7 @@ using BufferVector = std::vector<std::shared_ptr<Buffer>>;
 
 class DataType;
 class Field;
-class FieldRef;
+class FieldRef; /// NOLINT(bugprone-forward-declaration-namespace)
 class KeyValueMetadata;
 enum class Endianness;
 class Schema;

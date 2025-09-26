@@ -281,21 +281,27 @@ void ParquetFilePrinter::JSONPrint(std::ostream& stream, std::list<int> selected
              << "\"StatsSet\": ";
       if (column_chunk->is_stats_set()) {
         stream << "\"True\", \"Stats\": {";
+        bool comma = false;
         if (stats->HasNullCount()) {
-          stream << "\"NumNulls\": \"" << stats->null_count();
+          comma = true;
+          stream << "\"NumNulls\": \"" << stats->null_count() << "\"";
         }
         if (stats->HasDistinctCount()) {
-          stream << "\", "
-                 << "\"DistinctValues\": \"" << stats->distinct_count();
+          if (comma)
+            stream << ", ";
+          comma = true;
+          stream << "\"DistinctValues\": \"" << stats->distinct_count() << "\"";
         }
         if (stats->HasMinMax()) {
+          if (comma)
+            stream << ", ";
+          comma = true;
           std::string min = stats->EncodeMin(), max = stats->EncodeMax();
-          stream << "\", "
-                 << "\"Max\": \"" << FormatStatValue(descr->physical_type(), max)
+          stream << "\"Max\": \"" << FormatStatValue(descr->physical_type(), max)
                  << "\", "
-                 << "\"Min\": \"" << FormatStatValue(descr->physical_type(), min);
+                 << "\"Min\": \"" << FormatStatValue(descr->physical_type(), min) << "\"";
         }
-        stream << "\" },";
+        stream << " },";
       } else {
         stream << "\"False\",";
       }
@@ -312,11 +318,11 @@ void ParquetFilePrinter::JSONPrint(std::ostream& stream, std::list<int> selected
       }
       stream << "\", "
              << "\"UncompressedSize\": \"" << column_chunk->total_uncompressed_size()
-             << "\", \"CompressedSize\": \"" << column_chunk->total_compressed_size();
+             << "\", \"CompressedSize\": \"" << column_chunk->total_compressed_size() << "\"";
 
       if (column_chunk->bloom_filter_offset()) {
         // Output BloomFilter {offset, length}
-        stream << "\", BloomFilter {"
+        stream << ", \"BloomFilter\": {"
                << "\"offset\": \"" << column_chunk->bloom_filter_offset().value();
         if (column_chunk->bloom_filter_length()) {
           stream << "\", \"length\": \"" << column_chunk->bloom_filter_length().value();
@@ -327,7 +333,7 @@ void ParquetFilePrinter::JSONPrint(std::ostream& stream, std::list<int> selected
       if (column_chunk->GetColumnIndexLocation()) {
         auto location = column_chunk->GetColumnIndexLocation().value();
         // Output ColumnIndex {offset, length}
-        stream << "\", ColumnIndex {"
+        stream << ", \"ColumnIndex\": {"
                << "\"offset\": \"" << location.offset;
         stream << "\", \"length\": \"" << location.length;
         stream << "\"}";
@@ -336,14 +342,14 @@ void ParquetFilePrinter::JSONPrint(std::ostream& stream, std::list<int> selected
       if (column_chunk->GetOffsetIndexLocation()) {
         auto location = column_chunk->GetOffsetIndexLocation().value();
         // Output OffsetIndex {offset, length}
-        stream << "\", OffsetIndex {"
+        stream << ", \"OffsetIndex\": {"
                << "\"offset\": \"" << location.offset;
         stream << "\", \"length\": \"" << location.length;
         stream << "\"}";
       }
 
       // end of a ColumnChunk
-      stream << "\" }";
+      stream << " }";
       c1++;
       if (c1 != static_cast<int>(selected_columns.size())) {
         stream << ",\n";

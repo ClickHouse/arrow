@@ -115,12 +115,22 @@ std::string FormatStatValue(Type::type parquet_type, ::std::string_view val) {
       result << i32_val[0] << " " << i32_val[1] << " " << i32_val[2];
       break;
     }
-    case Type::BYTE_ARRAY: {
-      return std::string(val);
-    }
-    case Type::FIXED_LEN_BYTE_ARRAY: {
-      return std::string(val);
-    }
+    case Type::BYTE_ARRAY:
+    case Type::FIXED_LEN_BYTE_ARRAY:
+      // Escape byte arrays to be usable in json strings.
+      for (char c : val) {
+        if (c == '\\' || c == '"')
+          result << '\\' << c;
+        else if (c >= 32 && c <= 126)
+          result << c;
+        else
+          // What to do if the byte array is not valid utf8?
+          // There doesn't seem to be a standard way to reversibly convert byte strings to valid utf8 while keeping simple ascii readable.
+          // For now we'll just output invalid utf8, which json parsers may be ok with. Idk if that's the best option.
+          result << c;
+          // result << "�";
+      }
+      break;
     case Type::UNDEFINED:
     default:
       break;

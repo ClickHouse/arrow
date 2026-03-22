@@ -555,9 +555,7 @@ get_tz_dir()
 static_assert(min_year <= max_year, "Configuration error");
 #endif
 
-#if !defined(ANDROID) && !defined(__ANDROID__)
 static std::unique_ptr<tzdb> init_tzdb();
-#endif // !defined(ANDROID) && !defined(__ANDROID__)
 
 tzdb_list::~tzdb_list()
 {

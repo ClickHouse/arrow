@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "arrow/adapters/orc/options.h"
+#include "arrow/adapters/orc/util.h"
 #include "arrow/io/interfaces.h"
 #include "arrow/memory_pool.h"
 #include "arrow/record_batch.h"
@@ -60,7 +61,8 @@ class ARROW_EXPORT ORCFileReader {
   /// \return the returned reader object
   static Result<std::unique_ptr<ORCFileReader>> Open(
       const std::shared_ptr<io::RandomAccessFile>& file, MemoryPool* pool);
-
+  /// \brief Get ORC reader from inside.
+  liborc::Reader* GetRawORCReader();
   /// \brief Return the schema read from the ORC file
   ///
   /// \return the returned Schema object

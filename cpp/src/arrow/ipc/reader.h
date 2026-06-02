@@ -189,7 +189,7 @@ class ARROW_EXPORT RecordBatchFileReader
   /// \param[in] i the index of the record batch to return
   /// \return the read batch
   virtual Result<std::shared_ptr<RecordBatch>> ReadRecordBatch(int i) = 0;
-
+  virtual Result<int64_t> RecordBatchCountRows(int i) = 0;
   /// \brief Read a particular record batch along with its custom metadata from the file.
   /// Does not copy memory if the input source supports zero-copy.
   ///

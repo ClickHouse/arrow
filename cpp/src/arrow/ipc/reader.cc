@@ -1427,8 +1427,8 @@ class RecordBatchFileReaderImpl : public RecordBatchFileReader {
   Result<int64_t> RecordBatchCountRows(int i) override {
     DCHECK_GE(i, 0);
     DCHECK_LT(i, num_record_batches());
-    ARROW_ASSIGN_OR_RAISE(auto outer_message,
-                          ReadMessageFromBlock(GetRecordBatchBlock(i)));
+    ARROW_ASSIGN_OR_RAISE(auto block, GetRecordBatchBlock(i));
+    ARROW_ASSIGN_OR_RAISE(auto outer_message, ReadMessageFromBlock(block));
     auto metadata = outer_message->metadata();
     const flatbuf::Message* message = nullptr;
     RETURN_NOT_OK(

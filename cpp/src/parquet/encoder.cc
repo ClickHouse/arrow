@@ -366,6 +366,7 @@ class PlainEncoder<BooleanType> : public EncoderImpl, virtual public BooleanEnco
       throw ParquetException("direct put to boolean from " + values.type()->ToString() +
                              " not supported");
     }
+    total_values += values.length();
     const auto& data = checked_cast<const ::arrow::BooleanArray&>(values);
 
     if (data.null_count() == 0) {
@@ -935,6 +936,7 @@ class ByteStreamSplitEncoder : public ByteStreamSplitEncoderBase<DType> {
       throw ParquetException(std::string() + "direct put from " +
                              values.type()->ToString() + " not supported");
     }
+    Encoder::total_values += values.length();
     const auto& data = *values.data();
     this->PutSpaced(data.GetValues<typename ArrowType::c_type>(1),
                     static_cast<int>(data.length), data.GetValues<uint8_t>(0, 0),
@@ -974,6 +976,7 @@ class ByteStreamSplitEncoder<FLBAType> : public ByteStreamSplitEncoderBase<FLBAT
 
   void Put(const ::arrow::Array& values) override {
     AssertFixedSizeBinary(values, byte_width_);
+    Encoder::total_values += values.length();
     const auto& data = checked_cast<const ::arrow::FixedSizeBinaryArray&>(values);
     if (data.null_count() == 0) {
       // no nulls, just buffer the data
@@ -1658,6 +1661,7 @@ class RleBooleanEncoder final : public EncoderImpl, virtual public BooleanEncode
       throw ParquetException("RleBooleanEncoder expects BooleanArray, got ",
                              values.type()->ToString());
     }
+    total_values += values.length();
     const auto& boolean_array = checked_cast<const ::arrow::BooleanArray&>(values);
     if (values.null_count() == 0) {
       for (int i = 0; i < boolean_array.length(); ++i) {

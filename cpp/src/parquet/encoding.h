@@ -159,6 +159,10 @@ class Encoder {
   virtual ~Encoder() = default;
 
   virtual int64_t EstimatedDataEncodedSize() = 0;
+  int64_t TotalValues() const
+  {
+    return total_values;
+  }
   virtual std::shared_ptr<Buffer> FlushValues() = 0;
   virtual Encoding::type encoding() const = 0;
 
@@ -170,6 +174,8 @@ class Encoder {
   virtual int64_t ReportUnencodedDataBytes() = 0;
 
   virtual MemoryPool* memory_pool() const = 0;
+ protected:
+  int total_values = 0;
 };
 
 // Base class for value encoders. Since encoders may or not have state (e.g.,

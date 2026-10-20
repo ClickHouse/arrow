@@ -16,7 +16,7 @@
 
 module github.com/apache/arrow/go/v13
 
-go 1.20
+go 1.24
 
 require (
 	github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c
@@ -27,7 +27,7 @@ require (
 	github.com/golang/snappy v0.0.4
 	github.com/google/flatbuffers v23.1.21+incompatible
 	github.com/klauspost/asmfmt v1.3.2
-	github.com/klauspost/compress v1.15.15
+	github.com/klauspost/compress v1.18.7
 	github.com/klauspost/cpuid/v2 v2.2.3
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3

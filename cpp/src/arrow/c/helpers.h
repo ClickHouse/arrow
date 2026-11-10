@@ -57,8 +57,17 @@ inline void ArrowSchemaMove(struct ArrowSchema* src, struct ArrowSchema* dest) {
   ArrowSchemaMarkReleased(src);
 }
 
+/// The release callback can be implemented outside the code built with Clang CFI, for
+/// example in another language such as Rust. It then has no CFI type, so this call
+/// cannot be checked.
+#if defined(__clang__)
+#define ARROW_C_RELEASE_NO_CFI __attribute__((no_sanitize("cfi-icall")))
+#else
+#define ARROW_C_RELEASE_NO_CFI
+#endif
+
 /// Release the C schema, if necessary, by calling its release callback
-inline void ArrowSchemaRelease(struct ArrowSchema* schema) {
+ARROW_C_RELEASE_NO_CFI inline void ArrowSchemaRelease(struct ArrowSchema* schema) {
   if (!ArrowSchemaIsReleased(schema)) {
     schema->release(schema);
     ARROW_C_ASSERT(ArrowSchemaIsReleased(schema),
@@ -102,7 +111,7 @@ inline void ArrowDeviceArrayMove(struct ArrowDeviceArray* src,
 }
 
 /// Release the C array, if necessary, by calling its release callback
-inline void ArrowArrayRelease(struct ArrowArray* array) {
+ARROW_C_RELEASE_NO_CFI inline void ArrowArrayRelease(struct ArrowArray* array) {
   if (!ArrowArrayIsReleased(array)) {
     array->release(array);
     ARROW_C_ASSERT(ArrowArrayIsReleased(array),

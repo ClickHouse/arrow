@@ -663,7 +663,6 @@ TableBatchReader::TableBatchReader(const Table& table)
   for (int i = 0; i < table.num_columns(); ++i) {
     column_data_[i] = table.column(i).get();
   }
-  DCHECK(table_.Validate().ok());
 }
 
 TableBatchReader::TableBatchReader(std::shared_ptr<Table> table)
@@ -677,7 +676,6 @@ TableBatchReader::TableBatchReader(std::shared_ptr<Table> table)
   for (int i = 0; i < owned_table_->num_columns(); ++i) {
     column_data_[i] = owned_table_->column(i).get();
   }
-  DCHECK(table_.Validate().ok());
 }
 
 std::shared_ptr<Schema> TableBatchReader::schema() const { return table_.schema(); }
